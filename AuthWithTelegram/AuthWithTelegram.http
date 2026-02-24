@@ -1,0 +1,6 @@
+@AuthWithTelegram_HostAddress = http://localhost:5086
+
+GET {{AuthWithTelegram_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Auth Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+<div id="auth-container" class="bg-white p-8 rounded-lg shadow-md w-96 text-center">
+    <h2 class="text-2xl font-bold mb-6">Tizimga kirish</h2>
+
+    <div id="telegram-widget-container">
+        <script async src="https://telegram.org/js/telegram-widget.js?22"
+                data-telegram-login="AuthTesterBot"
+                data-size="large"
+                data-onauth="onTelegramAuth(user)"
+                data-request-access="write"></script>
+    </div>
+
+    <div id="user-info" class="hidden mt-6 text-left border-t pt-4">
+        <p class="text-green-600 font-semibold mb-2">Muvaffaqiyatli kirdingiz!</p>
+        <img id="user-photo" src="" class="w-20 h-20 rounded-full mx-auto mb-4 border shadow">
+        <p><strong>ID:</strong> <span id="u-id"></span></p>
+        <p><strong>Ism:</strong> <span id="u-name"></span></p>
+        <p><strong>Username:</strong> @<span id="u-username"></span></p>
+        <hr class="my-2">
+        <p class="text-xs break-all text-gray-500"><strong>JWT Token:</strong> <br> <span id="u-token"></span></p>
+    </div>
+</div>
+
+<script>
+    async function onTelegramAuth(user) {
+        console.log("Telegramdan kelgan ma'lumot:", user);
+
+        // 1. Backend API manzili (O'zingiznikiga o'zgartiring)
+        const apiUrl = `https://6714-92-63-205-131.ngrok-free.app/api/auth/telegram?id=${user.id}&first_name=${user.first_name}&last_name=${user.last_name || ''}&username=${user.username || ''}&photo_url=${user.photo_url || ''}&auth_date=${user.auth_date}&hash=${user.hash}`;
+
+        try {
+            // 2. Backendga so'rov yuborish
+            const response = await fetch(apiUrl);
+
+            if (response.ok) {
+                const data = await response.json(); // { token: "eyJhbG..." }
+
+                // 3. Natijani ekranda ko'rsatish
+                showUserInfo(user, data.token);
+            } else {
+                alert("Backendda autentifikatsiya xatosi!");
+            }
+        } catch (error) {
+            console.error("Xatolik:", error);
+            alert("Backend bilan bog'lanib bo'lmadi!");
+        }
+    }
+
+    function showUserInfo(user, token) {
+        document.getElementById('telegram-widget-container').classList.add('hidden');
+        document.getElementById('user-info').classList.remove('hidden');
+
+        document.getElementById('u-id').innerText = user.id;
+        document.getElementById('u-name').innerText = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+        document.getElementById('u-username').innerText = user.username || 'mavjud emas';
+        document.getElementById('user-photo').src = user.photo_url || 'https://via.placeholder.com/150';
+        document.getElementById('u-token').innerText = token;
+    }
+</script>
+</body>
+</html>
